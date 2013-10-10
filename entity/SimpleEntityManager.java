@@ -1,60 +1,36 @@
 package entity;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import main.ArithmaticHelper;
 import main.Color;
 import main.ConfigurationBean;
 import force.Force2D;
 
 public class SimpleEntityManager implements EntityManager{
 
-	private static final long NANO_TO_MILI = 1000000;
-	
+	final double FRICTION = 0.425;
 	final boolean SET_INITIAL_SPEED = true; 
 	final boolean SET_INITIAL_MASS = true; 
-	final boolean REFLEXIVE_BOUNDRIES = true;
-	final double FRICTION = 0.025;
-	
 	Random random = new Random();
+	
 	List<Entity2D> entities = new ArrayList<Entity2D>();
-
 	private ConfigurationBean config;
 	
 	public SimpleEntityManager(ConfigurationBean config) {
 		this.config = config;
 	}
 
-	public void initialize() {
-		
-		long initializationTime = System.nanoTime() / NANO_TO_MILI;
-		
-		for (int i = 0; i < config.getNumEntities(); i++){
-			Entity2D e = new Entity2D(initializationTime, random.nextDouble() * config.getWidth(), random.nextDouble() * config.getHeight());
-			e.setColor(new Color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
-			e.setFriction(FRICTION);
-			
-			if(SET_INITIAL_SPEED){
-				e.setSpeed(new Coordinate2D(random.nextDouble() * 100 - 50, random.nextDouble() * 100 - 50));
-			}
-			
-			if (SET_INITIAL_MASS){
-				e.setMass(1 + random.nextInt(49));
-			}
-			
-			entities.add(e);
-		}
-	}
-
-	public void update(Force2D force) {
-		
-		long time = System.nanoTime() / NANO_TO_MILI;
-		
+	@Override
+	public void updateEntities(Force2D forceField, long time) {
+		// updating old entities
 		for(Entity2D e: entities){
-			e.update(force, time);
-			
+			e.update(forceField, time);
+		
 			// enforce boundary criteria on coordinate and speed
-			if (REFLEXIVE_BOUNDRIES){
+			if (config.getReflexiveBoundries()){
 				Coordinate2D entityCoordinate = e.getCoordinate();
 				Coordinate2D entitySpeed = e.getSpeed();
 				
@@ -79,14 +55,48 @@ public class SimpleEntityManager implements EntityManager{
 				}
 			}
 		}
+		
 	}
 
-	public void draw() {
+	@Override
+	public void createNewEntities(int numEntities, Coordinate2D coordinate, long time) {
+		// adding new entities
+		for (int counter = 0; counter < numEntities; counter++) {
+			Entity2D e = new Entity2D(time, coordinate.getX(), coordinate.getY());
+			e.setColor(new Color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
+			e.setFriction(FRICTION);
+			
+			if(SET_INITIAL_SPEED){
+				e.setSpeed(new Coordinate2D(random.nextDouble() * 500 - 250, random.nextDouble() * 500 - 250));
+			}
+			
+			if (SET_INITIAL_MASS){
+				e.setMass(1 + random.nextInt(49));
+			}
+			
+			entities.add(e);
+		}
+			
+	}
+
+	@Override
+	public void killSlowEntities() {
+		List<Entity2D> remainingEntities = new ArrayList<Entity2D>();
+		for (Entity2D e: entities) {
+			if (ArithmaticHelper.getCoordinate2DSize(e.getSpeed()) > 10.0) {
+				remainingEntities.add(e);
+			}
+		}
+		entities = remainingEntities;
 		
+	}
+
+	@Override
+	public void draw() {
 		for(Entity2D e: entities){
 			e.draw();
 		}
-		
 	}
+
 
 }

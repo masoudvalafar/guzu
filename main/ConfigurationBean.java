@@ -6,7 +6,8 @@ public class ConfigurationBean {
 	private int numEntities;
 	private int height;
 	private boolean reflexiveBoundries;
-
+	private int gameStatus;
+	
 	public ConfigurationBean(int width, int height, int numEntities) {
 		this.width = width;
 		this.height = height;
@@ -43,6 +44,14 @@ public class ConfigurationBean {
 	
 	public void setReflexiveBounries(boolean reflexiveBoundries) {
 		this.reflexiveBoundries = reflexiveBoundries;
+	}
+
+	public int getGameStatue() {
+		return gameStatus;
+	}
+	
+	public void setGameStatus(int status) {
+		this.gameStatus = status;
 	}
 
 }
